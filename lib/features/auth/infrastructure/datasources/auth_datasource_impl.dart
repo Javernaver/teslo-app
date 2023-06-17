@@ -35,8 +35,19 @@ class AuthDataSourceImpl extends AuthDataSource {
       logger.i(response.data);
       final user = UserMapper.userJsonToEntity(response.data);
       return user;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw CustomError(
+            e.response?.data['message'] ?? 'Credenciales no validas');
+      }
+      if (e.type == DioExceptionType.connectionTimeout) {
+        throw ConnectionTimeout();
+      }
+      logger.e('Error en la petición');
+
+      throw CustomError('Error desconocido');
     } catch (e) {
-      throw WrongCredentials();
+      throw CustomError('Error desconocido');
     }
   }
 
